@@ -236,6 +236,10 @@ def calculate_unknown_ratio(data):
 
 
 def main():
+    """
+    python seq2seq.py source.txt target.txt source_vocab.txt target_vocab.txt --validation-source valid_source.txt --validation-target valid_target.txt
+    で学習がされる
+    """
     parser = argparse.ArgumentParser(description='Chainer example: seq2seq')
     parser.add_argument('SOURCE', help='source sentence list')
     parser.add_argument('TARGET', help='target sentence list')
@@ -387,11 +391,11 @@ def main():
         test_target_unknown = calculate_unknown_ratio(
             [t for _, t in test_data])
 
-        # validation-scoreを表
-        test_iter = chainer.iterators.SerialIterator(
-            test_data, args.batchsize, repeat=False, shuffle=False)
-        trainer.extend(extensions.Evaluator(
-            test_iter, model, converter=convert))
+        # validation-scoreを表示
+        # test_iter = chainer.iterators.SerialIterator(
+        #     test_data, args.batchsize, repeat=False, shuffle=False)
+        # trainer.extend(extensions.Evaluator(
+        #     test_iter, model, converter=convert))
 
         print('Validation data: %d' % len(test_data))
         print('Validation source unknown ratio: %.2f%%' %
@@ -437,6 +441,9 @@ def main():
 
 
 def test(texts, unit, layer, display_id=False):
+    """
+    二重リストを受け取って応答を返す
+    """
     parser = argparse.ArgumentParser(description='Chainer example: seq2seq')
     parser.add_argument('SOURCE_VOCAB', help='source vocabulary file')
     parser.add_argument('TARGET_VOCAB', help='target vocabulary file')
@@ -518,37 +525,10 @@ def test(texts, unit, layer, display_id=False):
         texts[i] = xp.array(texts[i], dtype=xp.int32)
 
     model = Seq2seq(layer, len(source_ids), len(target_ids), unit)
-    # optimizer = chainer.optimizers.Adam()
-    # optimizer.setup(model)
-    #
-    # # Setup iterator
-    # train_iter = chainer.iterators.SerialIterator([1], args.batchsize)
-    #
-    # # Setup updater and trainer
-    # updater = training.updaters.StandardUpdater(
-    #     train_iter, optimizer, converter=convert, device=args.gpu)
-    # trainer = training.Trainer(updater, (args.epoch, 'epoch'), out=args.out)
-    # trainer.extend(extensions.LogReport(
-    #     trigger=(args.log_interval, 'iteration'), log_name="dummy.txt"))
-    # trainer.extend(extensions.PrintReport(
-    #     ['epoch', 'iteration', 'main/loss', 'validation/main/loss',
-    #      'main/perp', 'validation/main/perp', 'validation/main/bleu',
-    #      'elapsed_time']),
-    #     trigger=(args.log_interval, 'iteration'))
-    #
-    # trainer.extend(
-    #     CalculateBleu(
-    #         model, [2], 'validation/main/bleu', device=args.gpu),
-    #         trigger=(args.validation_interval, 'iteration'))
-    #
-    # chainer.backends.cuda.get_device(args.gpu).use()
     model.to_gpu(0)
-    # chainer.serializers.load_npz("saves", model)
     load_file = "save_u" + str(unit) + "_l" + str(layer)
     chainer.serializers.load_npz(load_file, model)
 
-    # output = model.translate(cupy.ndarray(text, dtype=cupy.int32))
-    # outputs = model.translate(ids)
     outputs = model.translate(texts)
 
     if display_id:
@@ -561,8 +541,6 @@ def test(texts, unit, layer, display_id=False):
     for i, output in enumerate(outputs):
         for j, id in enumerate(output):
             output_words[i][j] = target_id_to_word_dic[id]
-
-    # print(output_words)
 
     return output_words, source_id_to_word_dic
 
@@ -583,6 +561,9 @@ def split_sentence_to_words(text):
 
 
 def realtime_dialogue():
+    """
+    対話用
+    """
     print("input your question: ", end="")
     text = input()
     while text != "exit":
@@ -626,6 +607,3 @@ if __name__ == '__main__':
     main()
     # realtime_dialogue()
     # testdata_eval("test_source.txt", "test_target.txt")
-    # test([["普段", "何", "し", "てる", "ん", "です", "か"]], unit=256, layer=3)
-
-    # test([xp.array([1, 2, 3], dtype=xp.int32), xp.array([1, 2, 3], dtype=xp.int32), xp.array([1, 2, 3], dtype=xp.int32), xp.array([11, 12, 13, 15], dtype=xp.int32)])
