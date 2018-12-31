@@ -57,7 +57,7 @@ class Seq2seq(chainer.Chain):
             self.embed_x = L.EmbedID(n_source_vocab, n_units)
             self.embed_y = L.EmbedID(n_target_vocab, n_units)
             self.encoder = L.NStepLSTM(n_layers, n_units, n_units, 0.1)
-            self.W_en_de = L.Linear(n_units + n_q_types, n_units)
+            # self.W_en_de = L.Linear(n_units + n_q_types, n_units)
             self.decoder = L.NStepLSTM(n_layers, n_units, n_units, 0.1)
             self.W = L.Linear(n_units, n_target_vocab)
 
@@ -442,7 +442,7 @@ def main():
             "save_u" + str(args.unit) + "_l" + str(args.layer), model)
 
 
-def test(texts, unit, layer, display_id=False):
+def test(texts, display_id=False):
     """
     二重リストを受け取って応答を返す
     """
@@ -505,6 +505,9 @@ def test(texts, unit, layer, display_id=False):
 
     source_ids = load_vocabulary(args.SOURCE_VOCAB)
     target_ids = load_vocabulary(args.TARGET_VOCAB)
+
+    unit = args.unit
+    layer = args.layer
 
     source_id_to_word_dic = {}
     for word, id in source_ids.items():
@@ -569,12 +572,15 @@ def realtime_dialogue():
     print("input your question: ", end="")
     text = input()
     while text != "exit":
-        words = split_sentence_to_words(text)
+        try:
+            words = split_sentence_to_words(text)
+            print(words)
 
-        print(words)
-
-        print(test([words], unit=256, layer=3))
-
+            reply, _ = test([words])
+            print(reply)
+        except Exception as e:
+            print(e)
+            
         print("input your question: ", end="")
         text = input()
 
@@ -586,7 +592,7 @@ def testdata_eval(source, target):
     match_cnt = 0
     mismatch_cnt = 1
 
-    results, source_id_to_word_dic = test(source_sentences, unit=256, layer=3)
+    results, source_id_to_word_dic = test(source_sentences)
 
     for i, result in enumerate(results):
         if result == target_sentences[i]:
