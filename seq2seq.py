@@ -23,6 +23,8 @@ from copy import copy
 import sys
 import linecache
 
+from time import time
+
 
 def failure(e):
     exc_type, exc_obj, tb = sys.exc_info()
@@ -442,7 +444,7 @@ def main():
             "save_u" + str(args.unit) + "_l" + str(args.layer), model)
 
 
-def test(texts, display_id=False):
+def test(texts, model=None, display_id=False):
     """
     二重リストを受け取って応答を返す
     """
@@ -529,10 +531,11 @@ def test(texts, display_id=False):
     for i in range(len(texts)):
         texts[i] = xp.array(texts[i], dtype=xp.int32)
 
-    model = Seq2seq(layer, len(source_ids), len(target_ids), unit)
-    model.to_gpu(0)
-    load_file = "save_u" + str(unit) + "_l" + str(layer)
-    chainer.serializers.load_npz(load_file, model)
+    if model is None:
+        model = Seq2seq(layer, len(source_ids), len(target_ids), unit)
+        model.to_gpu(0)
+        load_file = "save_u" + str(unit) + "_l" + str(layer)
+        chainer.serializers.load_npz(load_file, model)
 
     outputs = model.translate(texts)
 
@@ -547,7 +550,7 @@ def test(texts, display_id=False):
         for j, id in enumerate(output):
             output_words[i][j] = target_id_to_word_dic[id]
 
-    return output_words, source_id_to_word_dic
+    return output_words, source_id_to_word_dic, model
 
 
 def split_sentence_to_words(text):
@@ -569,18 +572,20 @@ def realtime_dialogue():
     """
     対話用
     """
+    model = None
     print("input your question: ", end="")
     text = input()
     while text != "exit":
         try:
             words = split_sentence_to_words(text)
             print(words)
+            print("Reply generating...")
 
-            reply, _ = test([words])
+            reply, _, model = test([words], model)
             print(reply)
         except Exception as e:
             print(e)
-            
+
         print("input your question: ", end="")
         text = input()
 
