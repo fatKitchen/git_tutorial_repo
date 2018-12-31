@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import argparse
 import datetime
 
@@ -604,6 +606,6 @@ def testdata_eval(source, target):
 
 
 if __name__ == '__main__':
-    main()
-    # realtime_dialogue()
+    # main()
+    realtime_dialogue()
     # testdata_eval("test_source.txt", "test_target.txt")
